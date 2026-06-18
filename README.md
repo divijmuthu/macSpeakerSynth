@@ -8,18 +8,22 @@ A **learn-by-building** real-time synthesizer: C++ audio engine + Python control
 
 **Abbreviations & jargon:** [learning/GLOSSARY.md](learning/GLOSSARY.md)
 
-**Current lab:** [learning/lab03/README.md](learning/lab03/README.md) — AudioCore + first beep
+**Current lab:** [learning/lab09/README.md](learning/lab09/README.md) — Waveforms
 
 ---
 
-## Quick start (Lab 03)
+## Current step
+
+**Lab 09** → [lab09/README.md](lab09/README.md)
+
+---
+
+## Quick start (Lab 09)
 
 ```bash
-cmake -S . -B build          # no network needed (miniaudio vendored)
-cmake --build build
-./build/test_lab03           # fill in AudioCore.cpp TODOs
-./build/race_synth           # hear 440 Hz — Ctrl+C to quit
-./build/test_lab02           # regression
+cmake --build build && ./build/test_lab09
+./build/race_synth
+python py_interface/main.py     # keyboard: A S D F = C major chord
 ```
 
 ---
@@ -30,12 +34,13 @@ cmake --build build
 |-----|--------|
 | 01 | Phase accumulator + sine ✓ |
 | 02 | ADSR envelope + Voice ✓ |
-| 03 | miniaudio callback *(active)* |
-| 04 | `std::thread` + ZMQ + lock-free queue |
-| 05 | Biquad LPF |
-| 06 | State-variable filter |
-| 07 | Delay + soft saturation |
-| 08 | Polyphony |
+| 03 | miniaudio callback ✓ |
+| 04 | ZMQ + lock-free queue ✓ |
+| 05 | Biquad LPF ✓ |
+| 06 | State-variable filter ✓ |
+| 07 | Delay + soft saturation ✓ |
+| 08 | Polyphony ✓ |
+| 09 | Waveforms *(active)* |
 
 Full curriculum (DSP + C++ keywords): [learning/ROADMAP.md](learning/ROADMAP.md)
 

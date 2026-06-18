@@ -81,11 +81,11 @@ Look up terms here when a lab or comment uses jargon you do not recognize. Entri
 
 ## Message examples (Lab 04+)
 
-Python will send small JSON-like lists, e.g.:
+Python will send comma-separated control strings over ZMQ, e.g.:
 
-- `["NOTE_ON", 440.0]` — start a note at 440 Hz  
-- `["NOTE_OFF"]` — release the note  
-- `["CUTOFF", 1200.0]` — set filter cutoff in Hz  
+- `NOTE_ON,440.0` — start a note at 440 Hz  
+- `NOTE_OFF,0` — release the note  
+- `CUTOFF,1200.0` — set filter cutoff in Hz (Lab 05)  
 
 The C++ side pushes these into a **LockFreeQueue**; the callback **drains** the queue once per buffer (not once per sample).
 

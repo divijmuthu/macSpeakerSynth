@@ -154,9 +154,8 @@ void test_no_click_retrigger() {
     }
     const float midNote = env.level();
     env.noteOn();
-    check(env.stage() == EnvelopeStage::Attack && near(env.level(), 0.0f),
-          "retrigger noteOn resets to Attack at level 0");
-    (void)midNote;
+    check(env.stage() == EnvelopeStage::Attack && near(env.level(), midNote),
+          "retrigger noteOn keeps level (no amplitude snap)");
 }
 
 }  // namespace

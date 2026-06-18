@@ -25,11 +25,12 @@ void Envelope::configure(float attackSec,
 }
 
 void Envelope::noteOn() {
-    // TODO (Lab 02, Q2a): Start a new note from Attack.
-    // - Set stage_ to Attack
-    // - Reset level_ to 0.0f (clean retrigger; avoids clicks from leftover level)
-    this->stage_ = EnvelopeStage::Attack;
-    this->level_ = 0.0f;
+    // Retrigger attack without snapping gain to zero — an instant drop while the
+    // oscillator is still running causes an audible click (same as hard noteOff).
+    if (stage_ == EnvelopeStage::Idle) {
+        level_ = 0.0f;
+    }
+    stage_ = EnvelopeStage::Attack;
 }
 
 void Envelope::noteOff() {
@@ -37,9 +38,11 @@ void Envelope::noteOff() {
     // - If we are Idle, nothing to do (return early).
     // - Otherwise set stage_ to Release.
     //   (Do NOT snap level to zero — Release ramps from the current level.)
-    //
-    this->stage_ = EnvelopeStage::Release;
-    this->releaseDelta_ = this->level_ / (releaseSec_ * sampleRate_); // compute release based on curr level which could vary
+    if (stage_ == EnvelopeStage::Idle || stage_ == EnvelopeStage::Release) {
+        return;
+    }
+    stage_ = EnvelopeStage::Release;
+    releaseDelta_ = level_ / (releaseSec_ * sampleRate_);
 }
 
 float Envelope::process() {

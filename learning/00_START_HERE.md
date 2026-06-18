@@ -24,11 +24,11 @@ Welcome. Each lab adds real code to the synth. Read the **roadmap** for the full
 |-----|--------|-----|----------------|
 | **01** ✓ | Oscillator | Phase accumulator | Classes, tests |
 | **02** ✓ | Envelope + Voice | ADSR FSM | `enum class`, state machines |
-| **03** | AudioCore | Buffer/block I/O | Callbacks, 2-thread model, real-time rules |
-| **04** | ZMQ + queue | Control vs audio rate | `std::thread`, lock-free, atomics |
-| **05** | Biquad LPF | IIR difference eq | Coefficient math |
-| **06** | SVF filter | Multimode filter | Better modulated cutoff |
-| **07** | Delay + saturation | Time + nonlinear FX | Ring buffer, wet/dry |
+| **03** ✓ | AudioCore | Buffer/block I/O | Callbacks, 2-thread model, real-time rules |
+| **04** ✓ | ZMQ + queue | Control vs audio rate | `std::thread`, lock-free, atomics |
+| **05** ✓ | Biquad LPF | IIR difference eq | Coefficient math |
+| **06** ✓ | SVF (TPT) | Multimode LP/HP/BP | Stable modulated cutoff |
+| **07** ✓ | Delay + saturation | Time + nonlinear FX | Ring buffer, wet/dry |
 | **08** | Polyphony | Mixing, voice steal | Fixed voice array |
 
 ---
@@ -37,7 +37,7 @@ Welcome. Each lab adds real code to the synth. Read the **roadmap** for the full
 
 ```bash
 cmake -S . -B build && cmake --build build
-./build/test_lab03    # current
+./build/test_lab08    # current
 ./build/race_synth    # Lab 03+ — speakers
 ```
 
@@ -45,4 +45,4 @@ cmake -S . -B build && cmake --build build
 
 ## Current step
 
-**Lab 03** → [lab03/README.md](lab03/README.md)
+**Lab 08** → [lab08/README.md](lab08/README.md)

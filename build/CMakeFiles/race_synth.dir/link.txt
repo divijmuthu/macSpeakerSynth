@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/race_synth.dir/src/main.cpp.o -o race_synth  libAudioCore.a librace_control.a /opt/homebrew/lib/libzmq.dylib librace_dsp.a -framework AudioToolbox -framework AudioUnit -framework CoreAudio
