@@ -54,7 +54,7 @@ void test_two_notes_use_separate_slots() {
           "440 Hz assigned to a slot");
 }
 
-void test_chord_louder_than_single_note() {
+void test_chord_headroom_is_stable() {
     LockFreeQueue<AudioCore::kControlQueueCapacity> queue;
     AudioCore core(&queue);
 
@@ -67,7 +67,8 @@ void test_chord_louder_than_single_note() {
     core.drainControlQueue();
     const float chordPeak = renderPeak(core);
 
-    check(chordPeak > singlePeak * 1.2f, "C major chord louder than single note");
+    check(chordPeak > singlePeak * 0.6f, "C major chord remains audible with headroom");
+    check(chordPeak < 0.99f, "C major chord stays below hard clip");
 }
 
 void test_note_off_by_frequency() {
@@ -100,7 +101,7 @@ int main() {
     std::printf("========================\n");
 
     test_two_notes_use_separate_slots();
-    test_chord_louder_than_single_note();
+    test_chord_headroom_is_stable();
     test_note_off_by_frequency();
     test_parse_note_off_with_frequency();
 

@@ -74,6 +74,7 @@ private:
 
     std::array<VoiceSlot, kMaxVoices> voices_{};
     std::uint32_t allocCounter_ = 0;
+    float mixGainCurrent_ = 1.0f;
 
     DelayLine delayLine_;
     SoftClip softClip_;

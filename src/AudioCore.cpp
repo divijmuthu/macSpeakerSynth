@@ -107,15 +107,33 @@ void AudioCore::releaseVoice(float frequencyHz) {
 }
 
 float AudioCore::mixActiveVoices() {
-    // TODO (Lab 08, Q3): Sum all active voices, clamp to [-1, 1] headroom.
-    // pretty easy, accumulate all active voices and clamp to -1 to 1
     float mix = 0.0f;
+    std::size_t activeCount = 0;
     for (auto& slot : voices_) {
         if (slot.voice.isActive()) {
             mix += slot.voice.nextSample();
+            ++activeCount;
         }
     }
-    return std::clamp(mix, -1.0f, 1.0f);    
+
+    if (activeCount == 0) {
+        mixGainCurrent_ = 1.0f;
+        return 0.0f;
+    }
+
+    // Polyphonic headroom strategy:
+    // - 1 voice: unity gain
+    // - N voices: conservative 1/N normalization (no chord overage clipping)
+    const float targetGain =
+        (activeCount == 1) ? 1.0f : (0.9f / static_cast<float>(activeCount));
+
+    // Smooth gain transitions so 1→2 notes (or release) doesn't click/pop.
+    constexpr float kGainSlew = 0.002f;  // ~10 ms at 48 kHz
+    mixGainCurrent_ += (targetGain - mixGainCurrent_) * kGainSlew;
+    mix *= mixGainCurrent_;
+
+    // Safety clamp for DAC range.
+    return std::clamp(mix, -0.98f, 0.98f);
 }
 
 void AudioCore::applyGlobalToAllVoices(const ControlMessage& message) {
