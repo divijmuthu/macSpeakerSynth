@@ -79,6 +79,8 @@ private:
     DelayLine delayLine_;
     SoftClip softClip_;
     float delayWet_ = 0.35f;
+    float masterGain_ = 0.8f;
+    bool simdMode_ = false;
 
     LockFreeQueue<kControlQueueCapacity>* controlQueue_ = nullptr;
     std::unique_ptr<AudioOutput> audioOutput_;

@@ -1,5 +1,7 @@
 # Lab 06 — State-variable filter (TPT / SVF)
 
+> Status note: for latest project-wide behavior and defaults, see [CURRENT_STATE.md](../CURRENT_STATE.md).
+
 **Goal:** Replace the biquad in `Voice` with a **trapezoidal state-variable filter** — smoother cutoff sweeps and **three modes** (LP / HP / BP) from one state.
 
 **Prerequisites:** Lab 05 green (`./build/test_lab05`).

@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/test_lab04.dir/tests-and-benchmarks/test_lab04.cpp.o" -o test_lab04  librace_dsp.a librace_control.a libAudioCore.a librace_dsp.a -framework AudioToolbox -framework AudioUnit -framework CoreAudio

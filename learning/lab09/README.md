@@ -1,5 +1,8 @@
 # Lab 09 — Waveforms (saw, square, triangle)
 
+> Status note: for latest project-wide behavior and defaults, see [CURRENT_STATE.md](../CURRENT_STATE.md).
+> Reference comparisons: [REFERENCE_IMPLEMENTATIONS.md](../REFERENCE_IMPLEMENTATIONS.md).
+
 **Goal:** Hear how **waveform shape** changes timbre before the filter sculpts it — same phase accumulator, different math.
 
 **Prerequisites:** Lab 08 green.

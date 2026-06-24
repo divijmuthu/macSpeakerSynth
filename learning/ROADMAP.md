@@ -4,6 +4,11 @@ Every lab adds **real code** under `include/` and `src/`. Nothing is throwaway h
 
 **Jump to:** [Curriculum map (DSP + C++)](#curriculum-map-dsp--c-fundamentals) · [Threading arc](#threading-arc) · [Current status](#current-status)
 
+**Current behavior snapshot:** [CURRENT_STATE.md](CURRENT_STATE.md)  
+**Reference comparisons:** [REFERENCE_IMPLEMENTATIONS.md](REFERENCE_IMPLEMENTATIONS.md)  
+**Interview-ready summary:** [INTERVIEW_READY_RUNDOWN.md](INTERVIEW_READY_RUNDOWN.md)  
+**Performance log:** [PERFORMANCE_TRACKING.md](PERFORMANCE_TRACKING.md)
+
 ---
 
 ## The finished system

@@ -1,0 +1,16 @@
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/race_dsp.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/race_control.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/AudioCore.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab01.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab02.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab03.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab04.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab05.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab06.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab07.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab08.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/test_lab09.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/benchmark_neon.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/race_synth.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/edit_cache.dir
+/Users/deepshikhakaul/Documents/macSpeakerSynth/build-neon/CMakeFiles/rebuild_cache.dir

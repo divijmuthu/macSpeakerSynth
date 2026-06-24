@@ -1,5 +1,7 @@
 # Lab 07 — Delay line & soft saturation
 
+> Status note: for latest project-wide behavior and defaults, see [CURRENT_STATE.md](../CURRENT_STATE.md).
+
 **Goal:** Add **echo** (circular delay buffer) and **warm limiting** (soft clip) on the **master bus** after the voice.
 
 **Prerequisites:** Lab 06 green.

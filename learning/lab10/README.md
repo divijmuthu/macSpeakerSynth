@@ -1,44 +1,84 @@
-# Lab 10 — ARM NEON / SIMD batch oscillator
+# Lab 10 — Assignment: SIMD / NEON Performance Investigation
 
-**Goal:** Process **4 samples at a time** on Apple Silicon using `arm_neon.h` — same math, wider lanes.
+> Status note: see [CURRENT_STATE.md](../CURRENT_STATE.md) for current behavior.
+> Measured data: [PERFORMANCE_TRACKING.md](../PERFORMANCE_TRACKING.md).
 
----
-
-## Why SIMD here?
-
-The audio callback must produce **48,000 samples/sec**. One `nextSample()` call is cheap, but polyphony (Lab 08) multiplies work. SIMD is how real synths keep CPU headroom.
-
-```text
-  scalar:  phase → sample → phase → sample …
-  NEON:    [p0 p1 p2 p3] → [s0 s1 s2 s3] in one batch
-```
+**Goal:** Understand and verify the vectorized oscillator path, then explain its performance tradeoffs in interview-quality language.
 
 ---
 
-## Files
+## Assignment outcomes
 
-| File | Role |
-|------|------|
-| `include/DSP_utilities/SimdOscillator.h` | `oscillatorRenderBatch()` API |
-| `src/DSP_utilities/SimdOscillator.cpp` | NEON path when `RACE_NEON=1` |
+By the end you should be able to answer:
 
-CMake enables `RACE_NEON` automatically on `arm64`.
+1. What does SIMD change in the oscillator workload?
+2. How is NEON enabled/disabled at build time?
+3. Why can an initial SIMD implementation still benchmark near 1x?
 
 ---
 
-## Benchmark
+## Part A — Read the implementation
+
+Focus files:
+
+- `include/DSP_utilities/SimdOscillator.h`
+- `src/DSP_utilities/SimdOscillator.cpp`
+- `tests-and-benchmarks/benchmark_neon.cpp`
+- `CMakeLists.txt` (`RACE_ENABLE_NEON`, `RACE_NEON`)
+
+Task:
+
+- Trace how scalar and batch paths are selected.
+- Write a short note (5-10 lines) describing where NEON is used and where scalar math remains.
+
+---
+
+## Part B — Run controlled benchmarks
+
+### Build with NEON on
 
 ```bash
-cmake --build build
-./build/benchmark_neon
+cmake -S . -B build-neon -DRACE_ENABLE_NEON=ON -DRACE_USE_COREAUDIO=ON
+cmake --build build-neon --target benchmark_neon
+./build-neon/benchmark_neon
 ```
 
-Compare **scalar** vs **batch** throughput (M samples/s).
+### Build with NEON off
+
+```bash
+cmake -S . -B build-scalar -DRACE_ENABLE_NEON=OFF -DRACE_USE_COREAUDIO=ON
+cmake --build build-scalar --target benchmark_neon
+./build-scalar/benchmark_neon
+```
+
+Task:
+
+- Record both outputs in `learning/PERFORMANCE_TRACKING.md`.
+- Add one paragraph interpreting results.
 
 ---
 
-## Integration note
+## Part C — Explain tradeoffs (interview style)
 
-Today batch is tested standalone; `Voice::nextSample()` stays scalar for simplicity. Lab 08 polyphony is the natural place to call batch per voice.
+Prepare a response covering:
 
-Next: [lab11/README.md](../lab11/README.md) — macOS Core Audio HAL.
+- Why SIMD matters for polyphony.
+- Why this benchmark may not show >1x speedup yet.
+- What changes would likely improve speedup (e.g., deeper integration and vector-friendly waveform math).
+
+---
+
+## Canonical reference implementation
+
+Lab 10 baseline is already implemented in this repo.
+Use it as the reference while writing your own explanation and measurements.
+
+---
+
+## Completion checklist
+
+- [ ] I can point to where `RACE_NEON` is defined.
+- [ ] I can run ON/OFF benchmarks.
+- [ ] I can explain the current speedup result and next optimization steps.
+
+Next: [lab11/README.md](../lab11/README.md)

@@ -1,5 +1,7 @@
 # Lab 05 — Biquad low-pass filter
 
+> Status note: for latest project-wide behavior and defaults, see [CURRENT_STATE.md](../CURRENT_STATE.md).
+
 **Goal:** Sculpt brightness with a second-order IIR low-pass — the core of **subtractive synthesis**.
 
 **Prerequisites:** Lab 04 green (`./build/test_lab04`, live keyboard works).

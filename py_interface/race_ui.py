@@ -91,6 +91,7 @@ class RaceSynthUI(tk.Tk):
         self._pending_key_off_jobs: dict[str, str] = {}
         self._filter_mode = tk.IntVar(value=0)
         self._waveform = tk.IntVar(value=0)
+        self._simd_mode = tk.IntVar(value=0)
         self._scope_job: str | None = None
         self._white_rects: dict[str, int] = {}
         self._black_rects: dict[str, int] = {}
@@ -153,6 +154,12 @@ class RaceSynthUI(tk.Tk):
                 variable=self._waveform,
                 command=self._apply_waveform,
             ).pack(side="left", padx=3)
+        ttk.Checkbutton(
+            wf_panel,
+            text="SIMD batch (runtime)",
+            variable=self._simd_mode,
+            command=self._apply_simd_mode,
+        ).pack(anchor="w", padx=8, pady=(0, 8))
 
         filt_panel = ttk.LabelFrame(row, text="Filter (SVF)")
         filt_panel.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
@@ -188,6 +195,7 @@ class RaceSynthUI(tk.Tk):
             ("Feedback", "0"),
             ("Wet mix", "0"),
             ("Drive", "1"),
+            ("Volume", "0.8"),
         ]
         self.effect_entries: dict[str, ttk.Entry] = {}
         for col, (name, default) in enumerate(labels):
@@ -472,6 +480,11 @@ class RaceSynthUI(tk.Tk):
         self.client.waveform(wf)
         self.status.set(f"WAVEFORM {wf} ({WAVEFORM_NAMES[wf]})")
 
+    def _apply_simd_mode(self) -> None:
+        enabled = self._simd_mode.get() == 1
+        self.client.simd_mode(enabled)
+        self.status.set(f"SIMD runtime mode: {'ON' if enabled else 'OFF'}")
+
     def _apply_cutoff(self) -> None:
         try:
             hz = float(self.cutoff_entry.get())
@@ -492,6 +505,7 @@ class RaceSynthUI(tk.Tk):
             feedback = float(self.effect_entries["Feedback"].get())
             wet = float(self.effect_entries["Wet mix"].get())
             drive = float(self.effect_entries["Drive"].get())
+            volume = float(self.effect_entries["Volume"].get())
         except ValueError:
             self.status.set("Invalid effect value — enter numbers")
             return
@@ -499,8 +513,11 @@ class RaceSynthUI(tk.Tk):
         self.client.delay_feedback(feedback)
         self.client.delay_wet(wet)
         self.client.drive(drive)
+        self.client.master_gain(volume)
         self.status.set(
-            f"FX delay={delay_s:.2f}s fb={feedback:.2f} wet={wet:.2f} drive={drive:.2f}"
+            "FX "
+            f"delay={delay_s:.2f}s fb={feedback:.2f} wet={wet:.2f} "
+            f"drive={drive:.2f} vol={volume:.2f}"
         )
 
     def _on_close(self) -> None:
@@ -524,9 +541,12 @@ def run_ui() -> None:
     client = SynthClient()
     scope = ScopeClient()
     # Dry defaults — bypass delay + unity drive until user clicks Apply effects.
+    client.waveform(0)  # Start from sine for clean baseline.
     client.delay_time(0.25)
     client.delay_feedback(0.0)
     client.delay_wet(0.0)
     client.drive(1.0)
+    client.master_gain(0.8)
+    client.simd_mode(False)
     app = RaceSynthUI(client, scope)
     app.mainloop()

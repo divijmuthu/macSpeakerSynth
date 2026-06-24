@@ -1,5 +1,7 @@
 # Lab 04 — Python keyboard, ZeroMQ & explicit multithreading
 
+> Status note: for latest project-wide behavior and defaults, see [CURRENT_STATE.md](../CURRENT_STATE.md).
+
 **Goal:** Press a key in Python → C++ changes pitch in real time — **safely across three threads**.
 
 **Prerequisites:** Lab 03 done (`./build/test_lab03`, `./build/race_synth` heard).

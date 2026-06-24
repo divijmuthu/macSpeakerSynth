@@ -1,63 +1,100 @@
-# Lab 11 — macOS Core Audio backend
+# Lab 11 — Assignment: Core Audio Backend Deep Dive
 
-**Goal:** Talk to the Mac speakers through **Apple's HAL** (Hardware Abstraction Layer) instead of only miniaudio.
+> Status note: see [CURRENT_STATE.md](../CURRENT_STATE.md) for current behavior.
+> Architecture summary: [INTERVIEW_READY_RUNDOWN.md](../INTERVIEW_READY_RUNDOWN.md).
 
----
-
-## Two backends
-
-| Backend | When | API |
-|---------|------|-----|
-| **Core Audio** | macOS, `RACE_USE_COREAUDIO=ON` (default) | `AudioUnit` DefaultOutput |
-| **miniaudio** | fallback / other platforms | portable callback |
-
-`AudioOutput::createDefault()` picks at compile time. `race_synth` prints which backend started:
-
-```text
-Audio backend: Core Audio (macOS HAL)
-```
+**Goal:** Explain and verify how the project uses macOS Core Audio while preserving a backend-agnostic DSP core.
 
 ---
 
-## Architecture
+## Assignment outcomes
 
-```text
-  Core Audio thread          AudioCore::renderBlock()
-        │                              │
-        └──── AURenderCallback ────────┘
-```
+By the end you should be able to answer:
 
-Same `renderBlock` loop — only the **device wrapper** changed (Lab 03 callback idea, platform-specific shell).
+1. Why introduce an `AudioOutput` abstraction at all?
+2. How does `CoreAudioOutput.mm` connect callback audio into `AudioCore::renderBlock()`?
+3. How can you force fallback backend and compare behavior?
 
 ---
 
-## CMake
+## Part A — Read backend abstraction
+
+Focus files:
+
+- `include/platform/AudioOutput.h`
+- `src/platform/MiniaudioOutput.cpp`
+- `src/platform/CoreAudioOutput.mm`
+- `src/AudioCore.cpp`
+- `CMakeLists.txt` (`RACE_USE_COREAUDIO`)
+
+Task:
+
+- Sketch a diagram showing:
+  - backend selection at build/runtime,
+  - callback path into `renderBlock`,
+  - where platform-specific code ends and engine code begins.
+
+---
+
+## Part B — Build both backend modes
+
+### Core Audio mode (default on Apple)
 
 ```bash
-cmake -S . -B build                    # Core Audio on Apple
-cmake -S . -B build -DRACE_USE_COREAUDIO=OFF   # force miniaudio on Mac
+cmake -S . -B build-core -DRACE_USE_COREAUDIO=ON
+cmake --build build-core
+./build-core/race_synth
 ```
 
-Links: `AudioToolbox`, `AudioUnit`, `CoreAudio`.
+### Force miniaudio fallback
+
+```bash
+cmake -S . -B build-mini -DRACE_USE_COREAUDIO=OFF
+cmake --build build-mini
+./build-mini/race_synth
+```
+
+Task:
+
+- Confirm which backend starts by reading runtime print:
+  - `Audio backend: Core Audio (macOS HAL)` or fallback.
+
+### Runtime switch without rebuild (new)
+
+When both backends are compiled (Apple + `RACE_USE_COREAUDIO=ON`), you can choose at launch:
+
+```bash
+RACE_AUDIO_BACKEND=coreaudio ./build-core/race_synth
+RACE_AUDIO_BACKEND=miniaudio ./build-core/race_synth
+```
+
+This makes A/B backend checks faster during tuning.
 
 ---
 
-## Files
+## Part C — Realtime safety audit
 
-| File | Role |
-|------|------|
-| `include/platform/AudioOutput.h` | abstract `start` / `stop` |
-| `src/platform/CoreAudioOutput.mm` | Objective-C++ AudioUnit |
-| `src/platform/MiniaudioOutput.cpp` | cross-platform fallback |
+Check that backend code obeys callback rules:
 
-Real-time rules unchanged: **no locks, no alloc** inside `renderBlock`.
+- no blocking calls in callback,
+- no dynamic allocations in callback,
+- no locks around per-sample render path.
+
+Write a short note with any caveats you find.
 
 ---
 
-## Stretch
+## Canonical reference implementation
 
-- Device picker (aggregate device, Bluetooth latency)
-- `AudioObject` property listeners for sample-rate change
-- Compare callback jitter: Core Audio vs miniaudio
+Lab 11 backend abstraction and Core Audio wrapper are already implemented in this repo.
+Your assignment is to validate and explain the design, then compare backend behavior.
+
+---
+
+## Completion checklist
+
+- [ ] I can explain why `AudioOutput` exists.
+- [ ] I can build/run Core Audio and fallback modes.
+- [ ] I can describe callback flow and realtime safety constraints.
 
 Return to [ROADMAP.md](../ROADMAP.md).

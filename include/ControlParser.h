@@ -12,6 +12,8 @@
 //   MODE,<0|1|2>          0=LP, 1=HP, 2=BP     (Lab 06)
 //   DELAY,<seconds>       FEEDBACK,<0-0.95>  WET,<0-1>  DRIVE,<gain>  (Lab 07)
 //   WAVEFORM,<0|1|2|3>     0=sine 1=saw 2=square 3=triangle  (Lab 09)
+//   GAIN,<0..1.5>         master output gain (Lab 09+)
+//   SIMD,<0|1>            runtime oscillator batch toggle (Lab 10)
 //
 // Two fields separated by one comma — state first, number second.
 // No JSON; C++ splits on ',' and reads the second field as float.

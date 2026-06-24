@@ -82,5 +82,17 @@ bool parseControlMessage(std::string_view wire, ControlMessage& messageOut) {
         return true;
     }
 
+    if (state == "GAIN") {
+        messageOut.type = ControlType::MasterGain;
+        messageOut.frequencyHz = parseFrequencyField(frequencyField);
+        return true;
+    }
+
+    if (state == "SIMD") {
+        messageOut.type = ControlType::SimdMode;
+        messageOut.frequencyHz = parseFrequencyField(frequencyField);
+        return true;
+    }
+
     return false;
 }

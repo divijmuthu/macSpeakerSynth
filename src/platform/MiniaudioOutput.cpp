@@ -3,8 +3,10 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <string_view>
 
 namespace {
 
@@ -69,6 +71,18 @@ private:
 #if defined(RACE_USE_COREAUDIO) && defined(__APPLE__)
 std::unique_ptr<AudioOutput> AudioOutput::createDefault() {
     extern std::unique_ptr<AudioOutput> createCoreAudioOutput();
+    const char* preferred = std::getenv("RACE_AUDIO_BACKEND");
+    if (preferred != nullptr) {
+        const std::string_view choice(preferred);
+        if (choice == "miniaudio") {
+            return std::make_unique<MiniaudioOutput>();
+        }
+        if (choice == "coreaudio") {
+            return createCoreAudioOutput();
+        }
+        std::cerr << "Unknown RACE_AUDIO_BACKEND=" << preferred
+                  << " (expected coreaudio|miniaudio), using Core Audio\n";
+    }
     return createCoreAudioOutput();
 }
 #else

@@ -1,5 +1,7 @@
 # Lab 03 — Audio callback & first beep
 
+> Status note: for latest project-wide behavior and defaults, see [CURRENT_STATE.md](../CURRENT_STATE.md).
+
 **Goal:** Wire your Lab 02 `Voice` into a **miniaudio** callback and hear a 440 Hz tone from your Mac speakers.
 
 **Prerequisites:** Lab 02 green (`./build/test_lab02`).

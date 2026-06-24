@@ -1,0 +1,2 @@
+/usr/bin/ar qc libAudioCore.a CMakeFiles/AudioCore.dir/src/AudioCore.cpp.o CMakeFiles/AudioCore.dir/src/platform/MiniaudioOutput.cpp.o CMakeFiles/AudioCore.dir/src/platform/CoreAudioOutput.mm.o
+/usr/bin/ranlib libAudioCore.a

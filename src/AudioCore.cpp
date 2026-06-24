@@ -20,6 +20,7 @@ AudioCore::AudioCore(LockFreeQueue<kControlQueueCapacity>* controlQueue)
     delayLine_.setFeedback(0.0f);
     delayWet_ = 0.0f;
     softClip_.setDrive(1.0f);
+    masterGain_ = 0.8f;
 }
 
 void AudioCore::configureVoiceDefaults(Voice& voice) {
@@ -32,6 +33,7 @@ void AudioCore::configureVoiceDefaults(Voice& voice) {
         kSampleRate);
     voice.setCutoff(12000.0f, kSampleRate);
     voice.setFilterMode(FilterMode::LowPass);
+    voice.setSimdEnabled(simdMode_);
 }
 
 std::size_t AudioCore::activeVoiceCount() const {
@@ -202,6 +204,15 @@ void AudioCore::drainControlQueue() {
             case ControlType::Drive:
                 softClip_.setDrive(message.frequencyHz);
                 break;
+            case ControlType::MasterGain:
+                masterGain_ = std::clamp(message.frequencyHz, 0.0f, 1.5f);
+                break;
+            case ControlType::SimdMode:
+                simdMode_ = (message.frequencyHz >= 0.5f);
+                for (auto& slot : voices_) {
+                    slot.voice.setSimdEnabled(simdMode_);
+                }
+                break;
         }
     }
 }
@@ -226,7 +237,7 @@ void AudioCore::renderBlock(float* output, std::uint32_t frameCount) {
     drainControlQueue();
 
     for (std::uint32_t i = 0; i < frameCount; ++i) {
-        const float dry = mixActiveVoices();
+        const float dry = mixActiveVoices() * masterGain_;
         const float s = processMasterEffects(dry);
 
         float scopeEnv = 0.0f;

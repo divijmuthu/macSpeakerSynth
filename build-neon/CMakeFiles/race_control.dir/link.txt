@@ -1,0 +1,2 @@
+/usr/bin/ar qc librace_control.a CMakeFiles/race_control.dir/src/ControlParser.cpp.o
+/usr/bin/ranlib librace_control.a

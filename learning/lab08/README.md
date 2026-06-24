@@ -1,5 +1,8 @@
 # Lab 08 — Polyphony & voice mixing
 
+> Status note: this lab has active tuning iterations; check [CURRENT_STATE.md](../CURRENT_STATE.md) first.
+> Reference comparisons: [REFERENCE_IMPLEMENTATIONS.md](../REFERENCE_IMPLEMENTATIONS.md).
+
 **Goal:** Play **chords** — up to **8 simultaneous notes**, each with its own `Voice`.
 
 **Prerequisites:** Lab 07 green.

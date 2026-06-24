@@ -56,6 +56,12 @@ class SynthClient:
     def waveform(self, index: int) -> None:
         self._pub.send_string(f"WAVEFORM,{index}")
 
+    def master_gain(self, gain: float) -> None:
+        self._pub.send_string(f"GAIN,{gain:.6f}")
+
+    def simd_mode(self, enabled: bool) -> None:
+        self._pub.send_string(f"SIMD,{1 if enabled else 0}")
+
 
 class ScopeClient:
     """SUB socket for mono output + envelope snapshots from race_synth."""

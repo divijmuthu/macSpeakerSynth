@@ -1,5 +1,7 @@
 # Lab 01 — Phase accumulator & sine wave
 
+> Status note: for latest project-wide behavior and defaults, see [CURRENT_STATE.md](../CURRENT_STATE.md).
+
 **Goal:** Implement a tiny `Oscillator` class that generates one sine sample at a time using a **phase accumulator**. No speakers yet — only unit tests.
 
 **Prerequisites:** Basic C++ (functions, structs/classes). No audio API knowledge required.

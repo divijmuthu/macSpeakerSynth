@@ -1,5 +1,7 @@
 # Lab 02 — ADSR envelope & Voice
 
+> Status note: for latest project-wide behavior and defaults, see [CURRENT_STATE.md](../CURRENT_STATE.md).
+
 **Goal:** Shape note volume over time and wire it to your Lab 01 oscillator inside a `Voice` — the same object Lab 03 drops into the audio callback.
 
 **Prerequisites:** Lab 01 complete (`./build/test_lab01` all green).

@@ -15,6 +15,8 @@ enum class ControlType : std::uint8_t {
     DelayWet,
     Drive,
     Waveform,  // frequencyHz = 0 sine, 1 saw, 2 square, 3 triangle (Lab 09)
+    MasterGain, // frequencyHz = 0..1.5 linear output gain
+    SimdMode,   // frequencyHz = 0 scalar, 1 SIMD batch in Voice nextSample
 };
 
 struct ControlMessage {

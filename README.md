@@ -5,6 +5,12 @@ A **learn-by-building** real-time synthesizer: C++ audio engine + Python control
 **Start here:** [learning/00_START_HERE.md](learning/00_START_HERE.md)
 
 **Roadmap (labs → finished synth):** [learning/ROADMAP.md](learning/ROADMAP.md)
+  
+**Current behavior snapshot:** [learning/CURRENT_STATE.md](learning/CURRENT_STATE.md)  
+**Reference implementation checklist:** [learning/REFERENCE_IMPLEMENTATIONS.md](learning/REFERENCE_IMPLEMENTATIONS.md)
+  
+**Interview-ready system rundown:** [learning/INTERVIEW_READY_RUNDOWN.md](learning/INTERVIEW_READY_RUNDOWN.md)  
+**Performance tracking (SIMD/CoreAudio):** [learning/PERFORMANCE_TRACKING.md](learning/PERFORMANCE_TRACKING.md)
 
 **Abbreviations & jargon:** [learning/GLOSSARY.md](learning/GLOSSARY.md)
 
