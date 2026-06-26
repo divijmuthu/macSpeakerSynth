@@ -1,158 +1,120 @@
 # macSpeakerSynth (RACE)
 
-A **learn-by-building** real-time synthesizer: C++ audio engine + Python controller.
+Real-time software synthesizer with a C++ audio engine and a Python UI.
 
-**Start here:** [learning/00_START_HERE.md](learning/00_START_HERE.md)
+## Current implementation
 
-**Roadmap (labs → finished synth):** [learning/ROADMAP.md](learning/ROADMAP.md)
-  
-**Current behavior snapshot:** [learning/CURRENT_STATE.md](learning/CURRENT_STATE.md)  
-**Reference implementation checklist:** [learning/REFERENCE_IMPLEMENTATIONS.md](learning/REFERENCE_IMPLEMENTATIONS.md)
-  
-**Interview-ready system rundown:** [learning/INTERVIEW_READY_RUNDOWN.md](learning/INTERVIEW_READY_RUNDOWN.md)  
-**Performance tracking (SIMD/CoreAudio):** [learning/PERFORMANCE_TRACKING.md](learning/PERFORMANCE_TRACKING.md)
+- C++17 synth engine running at 48 kHz.
+- Python/Tkinter controller that sends live note/control messages over ZeroMQ.
+- Core DSP blocks:
+  - Oscillator with `Sine`, `Saw`, `Square`, `Triangle`.
+  - ADSR envelope.
+  - Filters: Biquad LPF + State Variable Filter (LP/HP/BP).
+  - Master effects: delay (feedback + wet/dry) and soft clip.
+- 8-voice polyphony with voice allocation/stealing.
+- Lock-free SPSC queue between control thread and audio callback.
+- Runtime options:
+  - SIMD toggle for oscillator batch path.
+  - Audio backend selection on macOS (`Core Audio` or `miniaudio`).
 
-**Abbreviations & jargon:** [learning/GLOSSARY.md](learning/GLOSSARY.md)
+## Architecture (3 layers)
 
-**Current lab:** [learning/lab09/README.md](learning/lab09/README.md) — Waveforms
+1. **UI layer (Python)**: keyboard/controls emit messages (`NOTE_ON`, `CUTOFF`, `WAVEFORM`, etc.).
+2. **Control layer (C++ non-audio threads)**: ZMQ subscriber parses messages and pushes them into a lock-free queue.
+3. **Audio layer (C++ callback thread)**: drains queue, updates voice/filter/effect state, renders output samples to the active backend.
 
----
+This keeps the audio callback free from blocking work and cross-thread locks.
 
-## Current step
+## Dependencies
 
-**Lab 09** → [lab09/README.md](lab09/README.md)
+- macOS (primary target)
+- CMake 3.16+
+- C++17 compiler (Apple Clang works)
+- Python 3.9+
+- ZeroMQ (`brew install zeromq`)
 
----
+## Run (recommended)
 
-## Quick start
+From repo root:
 
 ```bash
-./run.sh                        # builds if needed, opens engine + UI in two terminals
-./run.sh --backend coreaudio    # force native macOS Core Audio backend
-./run.sh --inline               # no new windows: engine in background, UI in foreground
+./run.sh
 ```
 
-Manual (two terminals):
+What it does:
+- builds `race_synth` if needed,
+- creates `.venv` and installs Python deps if missing,
+- launches engine + UI in separate Terminal windows on macOS.
+
+Useful options:
 
 ```bash
-cmake --build build && ./build/test_lab09
+./run.sh --rebuild
+./run.sh --backend coreaudio
+./run.sh --backend miniaudio
+./run.sh --inline
+```
+
+## Manual build and run
+
+### 1) Configure and build
+
+```bash
+cmake -S . -B build
+cmake --build build --target race_synth
+```
+
+### 2) Start the C++ engine (Terminal A)
+
+```bash
 ./build/race_synth
-python py_interface/main.py     # keyboard: A S D F = C major chord
 ```
 
----
+### 3) Start the Python UI (Terminal B)
 
-## Teaching structure
+```bash
+python3 -m venv .venv
+./.venv/bin/pip install -r py_interface/requirements.txt
+./.venv/bin/python py_interface/main.py
+```
 
-| Lab | Topic |
-|-----|--------|
-| 01 | Phase accumulator + sine ✓ |
-| 02 | ADSR envelope + Voice ✓ |
-| 03 | miniaudio callback ✓ |
-| 04 | ZMQ + lock-free queue ✓ |
-| 05 | Biquad LPF ✓ |
-| 06 | State-variable filter ✓ |
-| 07 | Delay + soft saturation ✓ |
-| 08 | Polyphony ✓ |
-| 09 | Waveforms *(active)* |
+## Build-time options
 
-Full curriculum (DSP + C++ keywords): [learning/ROADMAP.md](learning/ROADMAP.md)
+```bash
+cmake -S . -B build \
+  -DRACE_USE_COREAUDIO=ON \
+  -DRACE_ENABLE_NEON=ON
+```
 
-Implementation notes and signal-flow diagrams: [learning_slop/implementation.md](learning_slop/implementation.md)
+- `RACE_USE_COREAUDIO`: include native macOS Core Audio backend.
+- `RACE_ENABLE_NEON`: enable ARM NEON oscillator batch path when supported.
 
----
+## Runtime backend selection (macOS)
 
-## Original design doc
+```bash
+RACE_AUDIO_BACKEND=coreaudio ./build/race_synth
+RACE_AUDIO_BACKEND=miniaudio ./build/race_synth
+```
 
-The full architecture spec (VCO, VCF, CMake layout, phases) is preserved at the bottom of this file for reference.
+Or use `./run.sh --backend ...`.
 
----
+## Tests and benchmark
 
-Design Doc:
-Integrating a synthesizer is a brilliant pivot. In fact, a software synthesizer (soft-synth) is arguably the *perfect* project to learn applied DSP and systems engineering. It forces you to deal with continuous audio generation, state machines, and real-time parameter modulation.
+```bash
+cmake --build build --target test_lab09
+./build/test_lab09
 
-To keep the architecture highly performant, we won't have Python play the system audio. **Python will act as the "MIDI Controller" and UI.** When you press a key or move a slider in Python, it will send a tiny control message (e.g., `["NOTE_ON", 440.0]`) via ZeroMQ to your C++engine. The C++ engine, running the continuous audio callback, will instantly generate the math for that 440Hz wave and push it to your MacBook's speakers.
+cmake --build build --target benchmark_neon
+./build/benchmark_neon
+```
 
-This setup bridges theoretical signals and systems concepts—like analyzing Linear Time-Invariant (LTI) systems and frequency responses—directly into high-performance C++ code. This is exactly the kind of architecture used in industry, from pro-audio plugins to the embedded DSP systems managing chimes, active noise cancellation, and spatial audio in modern electric vehicles.
-
-Here is the updated design document incorporating the synthesizer.
-
----
-
-## Project Design Document: Real-Time Audio Synthesizer & Control Engine (RACE)
-
-### 1 Project Objective
-
-To build a low-latency, real-time software synthesizer and audio processing pipeline in C++. The C++ engine will generate waveforms from scratch and apply custom DSP filters. A separate Python process will act as the user interface, sending real-time control parameters and "Note On/Off" triggers to the C++ engine over an IPC bridge.
-
-### 2 Core Architecture
-
-The system consists of a "headless" C++ audio engine and a Python control GUI.
-
-**Component A: The C++ Synthesis Engine (The Muscle)**
-
-- **Role:** Runs the high-priority `miniaudio` callback. It manages an array of "Voices" (oscillators), processes their volume envelopes, and routes them through mathematical filters before outputting to the DAC.
-- **Constraints:** No blocking operations, no `malloc` during the audio loop. State variables (like oscillator phase) must update with extreme precision.
-
-**Component B: The Python Controller (The Brain)**
-
-- **Role:** Provides a graphical interface (e.g., a virtual piano keyboard and knobs for filter cutoffs).
-- **Action:** Converts user inputs into discrete control messages and publishes them to the C++ engine via a ZeroMQ socket.
-
-### 3 DSP Algorithm Focus (From Scratch)
-
-You will implement the foundational building blocks of a subtractive synthesizer entirely through math.
-
-- **Voltage Controlled Oscillators (VCO):**
-  - *Concept:* Generating raw waveforms (Sine, Square, Sawtooth, Triangle).
-  - *Implementation:* You will use a **Phase Accumulator**. Instead of calculating an expensive `sin()` function for every sample, you increment a phase variable based on the sample rate and frequency, wrapping it at $2\pi$.
-- **Envelope Generators (ADSR):**
-  - *Concept:* Shaping the amplitude of the sound over time so it doesn't just abruptly click on and off.
-  - *Implementation:* A Finite State Machine (FSM) running inside the audio callback that multiplies the oscillator output by a dynamically changing gain value ($0.0$ to $1.0$) based on Attack, Decay, Sustain, and Release times.
-- **Voltage Controlled Filters (VCF):**
-  - *Concept:* Using your custom Biquad filters to "sculpt" the raw oscillator waves (subtractive synthesis).
-  - *Implementation:* Sweeping the cutoff frequency of a Low-Pass Biquad filter using the difference equation:
-  $$y[n] = \frac{b_0x[n] + b_1x[n-1] + b_2x[n-2] - a_1y[n-1] - a_2y[n-2]}{a_0}$$
-  You will need to calculate the $a$ and $b$ coefficients dynamically whenever Python sends a new cutoff frequency.
-
-### 4 CMake Project Structure
-
-This structure ensures your code is modular, separating the platform-specific audio code from your pure DSP math.
+## Repo layout
 
 ```text
-race_synth_engine/
-├── CMakeLists.txt          
-├── src/
-│   ├── main.cpp            # Initializes ZeroMQ SUB, starts miniaudio
-│   ├── AudioCore.cpp     # The miniaudio callback
-│   └── DSP_utilities/
-│       ├── Oscillator.cpp  # Phase accumulation math
-│       ├── Envelope.cpp    # ADSR state machine
-│       └── Biquad.cpp      # Filter math
-├── include/                
-│   ├── AudioCore.h
-│   ├── LockFreeQueue.h     # To safely receive Python messages
-│   └── DSP_utilities/
-│       ├── Oscillator.h
-│       ├── Envelope.h
-│       └── Biquad.h
-├── tests-and-benchmarks/                  # Unit tests for your DSP math
-│   └── test_dsp.cpp
-└── py_interface/
-    ├── main.py             # UI, Virtual Keyboard, ZMQ PUB
-    └── requirements.txt
+include/                 headers (AudioCore, DSP blocks, control messages)
+src/                     engine, platform backends, DSP implementations
+py_interface/            Python UI + ZMQ client
+tests-and-benchmarks/    tests and benchmark target(s)
+run.sh                   one-command launcher
 ```
 
-### 5 Phase-by-Phase Execution Plan
-
-- **Phase 1: The Continuous Beep.** Get the CMake project building. Hardcode a 440Hz sine wave phase accumulator in the C++ callback and output it to the speakers
-- **Phase 2: The ADSR Envelope.** Implement the Envelope class. Trigger it with a hardcoded timer to ensure the beep smoothly fades in and out without popping.
-- **Phase 3: The Python Bridge.** Implement the ZeroMQ Lock-Free Queue. Send a frequency from a Python script (e.g., 880Hz) and have the C++ sine wave instantly change pitch.
-- **Phase 4: Complex Waves & Filters.** Add Sawtooth and Square wave generation. Route the oscillator output through your Biquad Low-Pass filter. Add a slider in Python to control the filter's cutoff frequency.
-- **Phase 5: Polyphony (Advanced).** Upgrade the C++ engine to handle an array of oscillators simultaneously so you can play chords, mixing their outputs together before sending them to the DAC.
-
----
-
-This is an incredibly robust system to build. It will force you to deeply understand how data flows in a real-time system and how to translate discrete-time math into clean C++ classes.
-
-Would you like to start by sketching out the C++ class structure for the `Oscillator` and `Phase Accumulator` to see how we generate a sine wave without blowing up the CPU?
