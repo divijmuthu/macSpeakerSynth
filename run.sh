@@ -72,20 +72,22 @@ fi
 
 # --- 4b. open two Terminal.app windows (default on macOS) ------------------
 open_terminal() {
-  local title="$1" cmd="$2"
-  osascript >/dev/null <<EOF
-tell application "Terminal"
-  activate
-  do script "echo -n -e '\\033]0;${title}\\007'; ${cmd}"
-end tell
-EOF
+  local cmd="$1"
+  osascript - "$cmd" >/dev/null <<'APPLESCRIPT'
+on run argv
+  tell application "Terminal"
+    activate
+    do script (item 1 of argv)
+  end tell
+end run
+APPLESCRIPT
 }
 
 if [[ "$(uname)" == "Darwin" ]]; then
   echo "[run.sh] Opening engine + UI in separate Terminal windows..."
-  open_terminal "RACE engine" "$ENGINE_CMD"
+  open_terminal "$ENGINE_CMD"
   sleep 0.5   # give the engine a moment to bind its ZMQ sockets
-  open_terminal "RACE UI" "$UI_CMD"
+  open_terminal "$UI_CMD"
   echo "[run.sh] Done. Close either window (Ctrl-C) to stop that half."
 else
   echo "[run.sh] Non-macOS detected; falling back to --inline mode."
