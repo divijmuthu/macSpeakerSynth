@@ -24,7 +24,15 @@ A **learn-by-building** real-time synthesizer: C++ audio engine + Python control
 
 ---
 
-## Quick start (Lab 09)
+## Quick start
+
+```bash
+./run.sh                        # builds if needed, opens engine + UI in two terminals
+./run.sh --backend coreaudio    # force native macOS Core Audio backend
+./run.sh --inline               # no new windows: engine in background, UI in foreground
+```
+
+Manual (two terminals):
 
 ```bash
 cmake --build build && ./build/test_lab09
