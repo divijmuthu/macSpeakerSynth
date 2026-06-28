@@ -1,20 +1,20 @@
-# macSpeakerSynth (RACE)
+# macSpeakerSynth 
 
-Real-time software synthesizer with a C++ audio engine and a Python UI.
+Real-time audio synthesizer with a C++ audio engine and a Python UI.
 
 ## Current implementation
 
 - C++17 synth engine running at 48 kHz.
 - Python/Tkinter controller that sends live note/control messages over ZeroMQ.
 - Core DSP blocks:
-  - Oscillator with `Sine`, `Saw`, `Square`, `Triangle`.
-  - ADSR envelope.
-  - Filters: Biquad LPF + State Variable Filter (LP/HP/BP).
-  - Master effects: delay (feedback + wet/dry) and soft clip.
+  - Oscillator with `Sine`, `Saw`, `Square`, `Triangle` --> Provides underlying waveforms computed via phase progression.
+  - ADSR envelope --> Prevents sudden clicks/jumps, allows gradual ring up/down for hardware, enables tuning of pitch development.
+  - Filters: Biquad LPF + State Variable Filter (LP/HP/BP) --> Block or attenuate certain frequencies, implemented via classic biquad + coefficients and SVF which computes the required samples for all three together.
+  - Master effects: delay (feedback + wet/dry) and soft clip --> Produces lasting, recurring tones.
 - 8-voice polyphony with voice allocation/stealing.
 - Lock-free SPSC queue between control thread and audio callback.
 - Runtime options:
-  - SIMD toggle for oscillator batch path.
+  - SIMD toggle for oscillator batch path (offers potential for performance gains by parallelizing repetitive waveform calculations on a vector of phase arguments for 4 samples at a time).
   - Audio backend selection on macOS (`Core Audio` or `miniaudio`).
 
 ## Architecture (3 layers)
@@ -33,6 +33,8 @@ This keeps the audio callback free from blocking work and cross-thread locks.
 - Python 3.9+
 - ZeroMQ (`brew install zeromq`)
 
+
+
 ## Run (recommended)
 
 From repo root:
@@ -42,6 +44,7 @@ From repo root:
 ```
 
 What it does:
+
 - builds `race_synth` if needed,
 - creates `.venv` and installs Python deps if missing,
 - launches engine + UI in separate Terminal windows on macOS.
@@ -55,7 +58,11 @@ Useful options:
 ./run.sh --inline
 ```
 
+
+
 ## Manual build and run
+
+
 
 ### 1) Configure and build
 
@@ -64,11 +71,15 @@ cmake -S . -B build
 cmake --build build --target race_synth
 ```
 
+
+
 ### 2) Start the C++ engine (Terminal A)
 
 ```bash
 ./build/race_synth
 ```
+
+
 
 ### 3) Start the Python UI (Terminal B)
 
@@ -77,6 +88,8 @@ python3 -m venv .venv
 ./.venv/bin/pip install -r py_interface/requirements.txt
 ./.venv/bin/python py_interface/main.py
 ```
+
+
 
 ## Build-time options
 
@@ -88,6 +101,8 @@ cmake -S . -B build \
 
 - `RACE_USE_COREAUDIO`: include native macOS Core Audio backend.
 - `RACE_ENABLE_NEON`: enable ARM NEON oscillator batch path when supported.
+
+
 
 ## Runtime backend selection (macOS)
 
@@ -107,6 +122,8 @@ cmake --build build --target test_lab09
 cmake --build build --target benchmark_neon
 ./build/benchmark_neon
 ```
+
+
 
 ## Repo layout
 
