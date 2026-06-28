@@ -7,23 +7,24 @@ Real-time audio synthesizer with a C++ audio engine and a Python UI.
 - C++17 synth engine running at 48 kHz.
 - Python/Tkinter controller that sends live note/control messages over ZeroMQ.
 - Core DSP blocks:
-  - Oscillator with `Sine`, `Saw`, `Square`, `Triangle` --> Provides underlying waveforms computed via phase progression.
-  - ADSR envelope --> Prevents sudden clicks/jumps, allows gradual ring up/down for hardware, enables tuning of pitch development.
-  - Filters: Biquad LPF + State Variable Filter (LP/HP/BP) --> Block or attenuate certain frequencies, implemented via classic biquad + coefficients and SVF which computes the required samples for all three together.
-  - Master effects: delay (feedback + wet/dry) and soft clip --> Produces lasting, recurring tones.
-- 8-voice polyphony with voice allocation/stealing.
+  - Oscillator with `Sine`, `Saw`, `Square`, `Triangle` --> Provides underlying waveforms computed via phase accumulation, building arguments over 0 to 2pi adapted to sampling rate.
+  - ADSR envelope --> Prevents sudden clicks/jumps, allows gradual ring up/down for hardware, enables tuning of amplitude development.
+  - Filters: Biquad Butterworth LPF + Trapezoidal State Variable Filter (LP/HP/BP) --> Block or attenuate certain frequencies, implemented via classic biquad + coefficients and SVF which computes the required samples for all three together so one can be chosen for output.
+  - Master effects: delay (feedback + wet/dry) and soft clip.
+
 - Lock-free SPSC queue between control thread and audio callback.
+- 8-voice polyphony with voice allocation/stealing.
 - Runtime options:
   - SIMD toggle for oscillator batch path (offers potential for performance gains by parallelizing repetitive waveform calculations on a vector of phase arguments for 4 samples at a time).
   - Audio backend selection on macOS (`Core Audio` or `miniaudio`).
 
 ## Architecture (3 layers)
 
-1. **UI layer (Python)**: keyboard/controls emit messages (`NOTE_ON`, `CUTOFF`, `WAVEFORM`, etc.).
-2. **Control layer (C++ non-audio threads)**: ZMQ subscriber parses messages and pushes them into a lock-free queue.
-3. **Audio layer (C++ callback thread)**: drains queue, updates voice/filter/effect state, renders output samples to the active backend.
+1. **UI layer (Python)**: keyboard/controls emit messages (`NOTE_ON`, `CUTOFF`, `WAVEFORM`, etc.) --> this captures the user's commands for what the synthesizer needs to do and relays this to the control layer by ZMQ.
+2. **Control layer (C++ non-audio threads)**: ZMQ subscriber parses keyboard's messages and pushes them into a lock-free queue --> only writes to the queue (single producer).
+3. **Audio layer (C++ callback thread)**: reads from queue until drained (single consumer), updates voice/filter/effect state, renders output samples to a buffer for the active audio backend/HAL.
 
-This keeps the audio callback free from blocking work and cross-thread locks.
+This keeps the audio callback free from blocking work and cross-thread locks, as the queue's SPSC behavior allows each layer to perform their desired operations independently.
 
 ## Dependencies
 
